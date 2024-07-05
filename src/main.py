@@ -1,42 +1,30 @@
-import concurrent.futures
-from modules.updateDatabaseTicker import updateDatabaseTicker
-from modules.plot.plotTickerTimeframe import start_chart
-from multiprocessing import Process
+import asyncio
+import uvicorn
+from data_collection.task_manager import TaskManager
+from interface.chart import start_chart
 
 
-def updateAllSymbolTimeframe():
-    list_symbol = ["BTCUSDT", "ETHUSDT"]
-    list_timeframe = ["1h", "30m", "15m", "5m", "3m", "1m"]
-    # ["1M", "1w", "3d", "1d", "12h", "8h","6h","4h","2h",
-    limit = 1000
-    buffer = 1
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        for symbol in list_symbol:
-            for timeframe in list_timeframe:
-                futures.append(executor.submit(
-                    updateDatabaseTicker, symbol, timeframe, limit, buffer))
-
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                future.result()
-            except Exception as e:
-                print(f"Error ocurrido: {e}")
+async def start_task_manager():
+    while True:
+        try:
+            task_manager = TaskManager()
+            await task_manager.start_data_collection()
+        except:
+            print("REINICIANDO RECOLECION DE DATOS")
+            await asyncio.sleep(120)
+            task_manager = TaskManager()
+            await task_manager.start_data_collection()
 
 
-def main():
-    # Actualizar base de datos
-    proceso1 = Process(target=updateAllSymbolTimeframe)
-    # Grafico
-    proceso2 = Process(target=start_chart)
-    # multiprocessing
-    proceso1.start()
-    proceso2.start()
-
-    proceso1.join()
-    proceso2.join()
+async def start_uvicorn():
+    config = uvicorn.Config("api.app:app", host="0.0.0.0",
+                            port=8000, loop="asyncio")
+    server = uvicorn.Server(config)
+    await server.serve()
 
 
-if __name__ == '__main__':
+async def main():
+    await asyncio.gather(start_task_manager(), start_uvicorn(), start_chart())
 
-    main()
+if __name__ == "__main__":
+    asyncio.run(main())
