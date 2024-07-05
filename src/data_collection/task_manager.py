@@ -26,7 +26,7 @@ class TaskManager:
             date_time = datetime.datetime.fromtimestamp(timestamp_seconds)
             formatted_date_time = date_time.strftime('%Y-%m-%d %H:%M:%S')
             print(f"{ticker}_{timeframe} -> {formatted_date_time}")
-            await asyncio.sleep(15)
+            await asyncio.sleep(10)
 
     async def start_data_collection(self):
         tasks = []
@@ -38,5 +38,5 @@ class TaskManager:
                 for timeframe in settings["timeframes"]:
                     tasks.append(asyncio.create_task(self.collect_data(
                         exchange, ticker, timeframe, db_path, limit, api_url)))
-            await asyncio.sleep(15)
+            await asyncio.sleep(10)
         await asyncio.gather(*tasks)
