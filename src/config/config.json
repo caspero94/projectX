@@ -1,7 +1,7 @@
 {
     "exchanges": {
         "binance": {
-            "db_path": "database/binance_data.db",
+            "db_path": "postgresql+asyncpg://pedro:48163264@data-tickers.cte4mwggwkqy.ap-northeast-1.rds.amazonaws.com:5432/data-tickers",
             "data_limit": 1000,
             "max_parallel_requests": 5,
             "tickers": ["BTCUSDT", "ETHUSDT"],

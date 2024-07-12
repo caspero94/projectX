@@ -3,18 +3,18 @@ import aiosqlite
 import json
 from data_collection.db_manager import DBManager
 
-app = FastAPI()
-db_manager = DBManager()
-
 # Cargar el archivo de configuración
 with open('src/config/config.json') as config_file:
     config = json.load(config_file)
+
+app = FastAPI()
+db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
 
 
 @app.on_event("startup")
 async def startup_event():
     for exchange, settings in config["exchanges"].items():
-        await db_manager.init_db(settings["db_path"])
+        await db_manager.init_db()
 
 
 @app.get("/api/klines/{exchange}")
