@@ -1,6 +1,6 @@
 # Database files
 *.db
-
+database/
 # Otros
 .otros
 

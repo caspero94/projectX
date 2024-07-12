@@ -3,7 +3,7 @@ import json
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
 import datetime
-
+#
 with open('src/config/config.json') as config_file:
     config = json.load(config_file)
 
