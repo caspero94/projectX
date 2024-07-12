@@ -1,7 +1,7 @@
 import asyncio
 import uvicorn
 from data_collection.task_manager import TaskManager
-from interface.chart import start_chart
+# from interface.chart import start_chart
 
 
 async def start_task_manager():
@@ -24,7 +24,8 @@ async def start_uvicorn():
 
 
 async def main():
-    await asyncio.gather(start_task_manager(), start_uvicorn(), start_chart())
+    # , start_chart()
+    await asyncio.gather(start_task_manager(), start_uvicorn())
 
 if __name__ == "__main__":
     asyncio.run(main())
