@@ -6,7 +6,7 @@ from datetime import datetime
 
 from lightweight_charts import Chart
 
-with open('src/config/config.json') as config_file:
+with open('config/config.json') as config_file:
     config = json.load(config_file)
 for exchange, settings in config["exchanges"].items():
     tickers = settings["tickers"]

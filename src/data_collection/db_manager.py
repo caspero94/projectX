@@ -1,4 +1,3 @@
-import os
 from abc import ABC, abstractmethod
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.future import select
