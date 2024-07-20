@@ -3,7 +3,7 @@ import json
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
 import datetime
-#
+
 with open('src/config/config.json') as config_file:
     config = json.load(config_file)
 
@@ -15,22 +15,12 @@ class TaskManager:
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
-        print("INTENTAMOS OBTENER EL PRIMER LASTIME (DEBERIA SER 0 EN EL PRIMER INTENTO)")
         last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-        print(f"--> 1º LAST_TIME {last_time}")
         while True:
             new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
-            print("--> GET DATA", ticker, timeframe)
             await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
-            print("--> SAVE DATA", ticker, timeframe)
             last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-            print(f"--> LAST_TIME {last_time}")
-            # if last_time:
-            #     timestamp_seconds = last_time.timestamp()
-            #     date_time = datetime.datetime.fromtimestamp(timestamp_seconds)
-            #     formatted_date_time = date_time.strftime('%Y-%m-%d %H:%M:%S')
-            #     print(f"""{exchange}_{ticker}_{
-            #           timeframe} -> {formatted_date_time}""")
+            print(f"""{exchange}_{ticker}_{timeframe} -> {last_time}""")
             await asyncio.sleep(10)
 
     async def start_data_collection(self):

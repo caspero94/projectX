@@ -1,8 +1,5 @@
-aiosqlite
-aiohttp
-fastapi
 uvicorn
+aiohttp
 sqlalchemy
+fastapi
 asyncpg
-pyodbc
-aioodbc
