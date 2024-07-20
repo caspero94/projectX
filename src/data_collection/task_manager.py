@@ -21,7 +21,7 @@ class TaskManager:
             await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
             last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
             print(f"""{exchange}_{ticker}_{timeframe} -> {last_time}""")
-            await asyncio.sleep(10)
+            await asyncio.sleep(4)
 
     async def start_data_collection(self):
         await self.db_manager.init_db()
@@ -33,5 +33,5 @@ class TaskManager:
                 for timeframe in settings["timeframes"]:
                     tasks.append(asyncio.create_task(self.collect_data(
                         exchange, ticker, timeframe, limit, api_url)))
-            await asyncio.sleep(10)
+            await asyncio.sleep(4)
         await asyncio.gather(*tasks)
