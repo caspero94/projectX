@@ -3,3 +3,6 @@ aiohttp
 fastapi
 uvicorn
 sqlalchemy
+asyncpg
+pyodbc
+aioodbc

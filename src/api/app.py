@@ -4,7 +4,7 @@ import json
 from data_collection.db_manager import DBManager
 
 # Cargar el archivo de configuración
-with open('config/config.json') as config_file:
+with open('src/config/config.json') as config_file:
     config = json.load(config_file)
 
 app = FastAPI()

@@ -2,6 +2,7 @@ import asyncio
 import uvicorn
 from data_collection.task_manager import TaskManager
 # from interface.chart import start_chart
+# "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d","3d","1w",
 
 
 async def start_task_manager():
