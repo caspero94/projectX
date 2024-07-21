@@ -1,7 +1,20 @@
 from fastapi import FastAPI, Query
 import json
 import asyncpg
+import logging
 from data_collection.db_manager import DBManager
+
+# Configuración del logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 # Cargar el archivo de configuración
 with open('src/config/config.json') as config_file:
@@ -13,8 +26,13 @@ db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
 
 @app.on_event("startup")
 async def startup_event():
-    for exchange, settings in config["exchanges"].items():
-        await db_manager.init_db()
+    try:
+        for exchange, settings in config["exchanges"].items():
+            await db_manager.init_db()
+        logger.info("Base de datos inicializada en el evento de inicio")
+    except Exception as e:
+        logger.error(f"Error al inicializar la base de datos: {e}")
+        raise
 
 
 @app.get("/api/klines/{exchange}")
@@ -29,14 +47,14 @@ async def get_data(exchange: str, ticker: str = Query(...), timeframe: str = Que
     query += " ORDER BY open_time DESC"
     query += f" LIMIT {limit}"
 
-    conn = await asyncpg.connect(dsn=db_path)
     try:
+        conn = await asyncpg.connect(dsn=db_path)
         data = await conn.fetch(query)
+        logger.info(f"Consulta realizada: {query}")
+        return data
+    except Exception as e:
+        logger.error(f"Error al ejecutar la consulta {query}: {e}")
+        raise
     finally:
         await conn.close()
-
-    return data
-    # async with asyncpg.connect(db_path) as db:
-    #     async with db.execute(query) as cursor:
-    #         data = await cursor.fetchall()
-    #         return data
+        logger.info("Conexión a la base de datos cerrada")

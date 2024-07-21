@@ -6,6 +6,19 @@ from sqlalchemy import Column, Integer, String, MetaData, Table, BigInteger, sel
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 import json
+import logging
+
+# Configuración del logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 with open('src/config/config.json') as config_file:
@@ -61,7 +74,7 @@ class DBManager(AbstractDBManager):
     async def init_db(self):
         async with self.engine.begin() as conn:
             await conn.run_sync(self.metadata.create_all, checkfirst=True)
-            print("Comprobado que existen las tablas y/o se crearon")
+            logger.info("Comprobado que existen las tablas y/o se crearon")
 
     async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
         table_name = f"{exchange}_{ticker}_{timeframe}"
@@ -70,23 +83,23 @@ class DBManager(AbstractDBManager):
         if table is None:
             raise ValueError(f"Table {table_name} is not defined")
 
-        # Convertir la lista de tuplas a una lista de diccionarios
         columns = table.columns.keys()
         data_dict = [dict(zip(columns, record)) for record in data]
         async with self.async_session() as session:
             try:
                 async with session.begin():
-                    # Construir el comando INSERT con ON CONFLICT DO UPDATE
                     insert_stmt = insert(table).values(data_dict)
                     update_stmt = insert_stmt.on_conflict_do_update(
-                        index_elements=['open_time'],  # La clave primaria
+                        index_elements=['open_time'],
                         set_={col: insert_stmt.excluded[col]
                               for col in columns if col != 'open_time'}
                     )
                     await session.execute(update_stmt)
+                    logger.info(f"Datos guardados en {table_name}")
             except SQLAlchemyError as e:
                 await session.rollback()
-                print(f"Error al insertar/actualizar datos: {e}")
+                logger.error(
+                    f"Error al insertar/actualizar datos en {table_name}: {e}")
                 raise
 
     async def get_last_time_from_db(self, ticker: str, timeframe: str, exchange: str):
@@ -102,7 +115,9 @@ class DBManager(AbstractDBManager):
                     table.c.open_time.desc()).limit(1)
                 result = await session.execute(stmt)
                 row = result.scalar()
+                logger.info(f"Último tiempo obtenido para {table_name}: {row}")
                 return row if row else "0000000000000"
             except SQLAlchemyError as e:
-                print(f"Error al obtener el último tiempo: {e}")
+                logger.error(f"""Error al obtener el último tiempo de {
+                             table_name}: {e}""")
                 return "0000000000000"
