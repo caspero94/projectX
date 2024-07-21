@@ -13,7 +13,7 @@ log_file = os.path.join(log_dir, "app.log")
 
 # Configura el logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(log_file),
