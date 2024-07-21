@@ -4,7 +4,7 @@
             "db_path": "postgresql+asyncpg://pedro:dolar816.@server-data.postgres.database.azure.com:5432/postgres",
             "data_limit": 1000,
             "max_parallel_requests": 5,
-            "tickers": ["BTCUSDT", "ETHUSDT"],
+            "tickers": ["BTCUSDT", "ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT"],
             "timeframes": ["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d","3d","1w"], 
             "api_url": "https://api.binance.com/api/v3/klines?symbol={ticker}&interval={timeframe}&startTime={start_time}&limit={limit}"
         }
