@@ -2,17 +2,19 @@ import asyncio
 import uvicorn
 import logging
 from data_collection.task_manager import TaskManager
+import os
+# Configura el directorio del archivo de log
+log_file = os.path.join(os.path.dirname(__file__), 'app.log')
 
-# Configuración del logger
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
-        logging.FileHandler("app.log"),
+        logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
-
 logger = logging.getLogger(__name__)
 
 
