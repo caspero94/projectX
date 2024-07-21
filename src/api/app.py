@@ -4,18 +4,6 @@ import asyncpg
 import logging
 from data_collection.db_manager import DBManager
 import os
-# Configura el directorio del archivo de log
-log_file = os.path.join(os.path.dirname(__file__), 'app.log')
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
-)
 
 logger = logging.getLogger(__name__)
 

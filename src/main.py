@@ -3,18 +3,24 @@ import uvicorn
 import logging
 from data_collection.task_manager import TaskManager
 import os
-# Configura el directorio del archivo de log
-log_file = os.path.join(os.path.dirname(__file__), 'app.log')
 
+# Configura el directorio de logs
+log_dir = "/home/pedro_pereira/projectX/logs"
+os.makedirs(log_dir, exist_ok=True)
+
+# Configura el archivo de log
+log_file = os.path.join(log_dir, "app.log")
+
+# Configura el logging
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
+
 logger = logging.getLogger(__name__)
 
 
