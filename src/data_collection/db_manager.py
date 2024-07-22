@@ -62,9 +62,13 @@ class DBManager(AbstractDBManager):
         }
 
     async def init_db(self):
-        async with self.engine.begin() as conn:
-            await conn.run_sync(self.metadata.create_all, checkfirst=True)
-            logger.info("Comprobado que existen las tablas y/o se crearon")
+        try:
+            async with self.engine.begin() as conn:
+                await conn.run_sync(self.metadata.create_all, checkfirst=True)
+                logger.info("Comprobado que existen las tablas y/o se crearon")
+        except:
+            logger.error(
+                "Error intentado comprobar que existen o se crearon las tablas necesarias")
 
     async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
         table_name = f"{exchange}_{ticker}_{timeframe}"
