@@ -31,8 +31,7 @@ class AbstractDBManager(ABC):
 
 class DBManager(AbstractDBManager):
     def __init__(self, db_url: str):
-        self.engine = create_async_engine(
-            db_url, echo=False, pool_size=30, max_overflow=50, pool_timeout=20)
+        self.engine = create_async_engine(db_url, echo=False)
         self.async_session = sessionmaker(
             bind=self.engine,
             expire_on_commit=False,
