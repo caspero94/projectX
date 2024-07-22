@@ -27,7 +27,7 @@ async def startup_event():
 
 
 @app.get("/api/klines/{exchange}")
-async def get_data(exchange: str, ticker: str = Query(...), timeframe: str = Query(...), startTime: int = Query(None), endTime: int = Query(None), limit: int = Query(100, gt=0, le=1000)):
+async def get_data(exchange: str, ticker: str = Query(...), timeframe: str = Query(...), startTime: int = Query(None), endTime: int = Query(None), limit: int = Query(100, gt=0, le=10000)):
     db_path = "postgresql://pedro:dolar816.@server-data.postgres.database.azure.com:5432/postgres"
     query = f'SELECT * FROM "{exchange}_{ticker}_{timeframe}" WHERE 1=1'
     if startTime:
