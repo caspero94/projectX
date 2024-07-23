@@ -13,7 +13,7 @@ log_file = os.path.join(log_dir, "app.log")
 
 # Configura el logging
 logging.basicConfig(
-    level=logging.WARN,
+    level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(log_file),
@@ -52,7 +52,7 @@ async def main():
         await asyncio.gather(start_task_manager(), start_uvicorn())
     except Exception as e:
         logger.critical("Error crítico: %s", e)
-        logger.info("Cerrando el programa debido a un fallo crítico")
+        logger.critical("Cerrando el programa debido a un fallo crítico")
 
 if __name__ == "__main__":
     asyncio.run(main())
