@@ -33,7 +33,7 @@ class TaskManager:
                         logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                             timeframe} -> {lastdata}""")
 
-                await asyncio.sleep(80)
+                    # await asyncio.sleep(80)
         except Exception as e:
             logger.error(f"""Error en collect_data: {
                 e}, ticker {ticker} - {timeframe}""")
