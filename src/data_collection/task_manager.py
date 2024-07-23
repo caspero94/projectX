@@ -4,6 +4,7 @@ import logging
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
 from datetime import datetime
+from asyncio import Semaphore
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,11 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
+        self.db_semaphore = Semaphore(10)
+
+    async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
+        async with self.db_semaphore:
+            await self.db_manager.save_to_db(data, ticker, timeframe, exchange)
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
 
@@ -26,23 +32,19 @@ class TaskManager:
                 if int(last_time) < 1720562000000:
 
                     new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
-                    await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
+                    # await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
+                    await self.save_to_db(new_data, ticker, timeframe, exchange)
                     lastdata = datetime.fromtimestamp(int(last_time)/1000)
                     logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                         timeframe} -> {lastdata}""")
 
-                    # await asyncio.sleep(80)
+                await asyncio.sleep(30)
         except Exception as e:
             logger.error(f"""Error en collect_data: {
                 e}, ticker {ticker} - {timeframe}""")
             raise
 
-    async def collect_data_with_semaphore(self, semaphore, exchange, ticker, timeframe, limit, api_url):
-        async with semaphore:
-            await self.collect_data(exchange, ticker, timeframe, limit, api_url)
-
     async def start_data_collection(self):
-        semaphore = asyncio.Semaphore(10)
         try:
             await self.db_manager.init_db()
             tasks = []
@@ -51,8 +53,9 @@ class TaskManager:
                 api_url = settings["api_url"]
                 for ticker in settings["tickers"]:
                     for timeframe in settings["timeframes"]:
-                        tasks.append(asyncio.create_task(self.collect_data_with_semaphore(
-                            semaphore, exchange, ticker, timeframe, limit, api_url)))
+                        tasks.append(asyncio.create_task(self.collect_data(
+                            exchange, ticker, timeframe, limit, api_url)))
+                # await asyncio.sleep(15)
             await asyncio.gather(*tasks)
         except Exception as e:
             logger.error(f"Error en start_data_collection: {e}")
