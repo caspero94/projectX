@@ -17,7 +17,7 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
-        self.db_semaphore = Semaphore(20)
+        self.db_semaphore = Semaphore(8)
 
     async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
         async with self.db_semaphore:
@@ -38,7 +38,7 @@ class TaskManager:
                     logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                         timeframe} -> {lastdata}""")
 
-                await asyncio.sleep(10)
+                # await asyncio.sleep(10)
         except Exception as e:
             logger.error(f"""Error en collect_data: {
                 e}, ticker {ticker} - {timeframe}""")
