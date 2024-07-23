@@ -23,8 +23,9 @@ class TaskManager:
                 last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
                 new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
                 await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
+                lastdata = datetime.fromtimestamp(last_time/1000)
                 logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
-                            timeframe} -> {datetime.fromtimestamp(last_time/1000)}""")
+                            timeframe} -> {lastdata}""")
                 await asyncio.sleep(20)
         except Exception as e:
             logger.error(f"Error en collect_data: {e}")
