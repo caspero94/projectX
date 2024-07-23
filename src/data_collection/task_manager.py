@@ -16,24 +16,26 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
+        self.semaphore = asyncio.Semaphore(100)
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
-        try:
-            while True:
-                last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-                if int(last_time) < 1720562000000:
+        async with self.semaphore:
+            try:
+                while True:
+                    last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
+                    if int(last_time) < 1720562000000:
 
-                    new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
-                    await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
-                    lastdata = datetime.fromtimestamp(int(last_time)/1000)
-                    logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
-                        timeframe} -> {lastdata}""")
+                        new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
+                        await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
+                        lastdata = datetime.fromtimestamp(int(last_time)/1000)
+                        logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
+                            timeframe} -> {lastdata}""")
 
-                await asyncio.sleep(80)
-        except Exception as e:
-            logger.error(f"""Error en collect_data: {
-                         e}, ticker {ticker} - {timeframe}""")
-            raise
+                    await asyncio.sleep(80)
+            except Exception as e:
+                logger.error(f"""Error en collect_data: {
+                    e}, ticker {ticker} - {timeframe}""")
+                raise
 
     async def start_data_collection(self):
         try:
