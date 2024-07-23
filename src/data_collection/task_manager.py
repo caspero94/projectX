@@ -26,7 +26,9 @@ class TaskManager:
                 lastdata = datetime.fromtimestamp(last_time/1000)
                 logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                             timeframe} -> {lastdata}""")
-                await asyncio.sleep(60)
+                if last_time > 1720562400000:
+                    await asyncio.sleep(600)
+                await asyncio.sleep(4)
         except Exception as e:
             logger.error(f"""Error en collect_data: {
                          e}, ticker {ticker} - {timeframe}""")
