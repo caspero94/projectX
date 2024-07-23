@@ -14,7 +14,7 @@ log_file = os.path.join(log_dir, "app.log")
 # Configura el logging
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     handlers=[
         logging.FileHandler(log_file),
         logging.StreamHandler()
