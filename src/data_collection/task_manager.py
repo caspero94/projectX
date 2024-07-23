@@ -3,6 +3,7 @@ import json
 import logging
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,13 @@ class TaskManager:
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
         try:
-            last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
             while True:
+                last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
                 new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
                 await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
-                last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-                logger.info(f"{exchange}_{ticker}_{timeframe} -> {last_time}")
-                # await asyncio.sleep(15)
+                logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
+                            timeframe} -> {datetime.fromtimestamp(last_time/1000)}""")
+                await asyncio.sleep(15)
         except Exception as e:
             logger.error(f"Error en collect_data: {e}")
             raise

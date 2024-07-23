@@ -90,7 +90,7 @@ class DBManager(AbstractDBManager):
                               for col in columns if col != 'open_time'}
                     )
                     await session.execute(update_stmt)
-                    logger.info(f"Datos guardados en {table_name}")
+                    logger.debug(f"Datos guardados en {table_name}")
             except SQLAlchemyError as e:
                 await session.rollback()
                 logger.error(
@@ -110,7 +110,8 @@ class DBManager(AbstractDBManager):
                     table.c.open_time.desc()).limit(1)
                 result = await session.execute(stmt)
                 row = result.scalar()
-                logger.info(f"Último tiempo obtenido para {table_name}: {row}")
+                logger.debug(f"""Último tiempo obtenido para {
+                             table_name}: {row}""")
                 return row if row else "0000000000000"
             except SQLAlchemyError as e:
                 logger.error(f"""Error al obtener el último tiempo de {

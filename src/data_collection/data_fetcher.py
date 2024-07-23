@@ -24,7 +24,6 @@ class DataFetcher(AbstractDataFetcher):
             async with session.get(url) as response:
                 response.raise_for_status()  # Asegura que la respuesta sea exitosa
                 data = await response.json()
-                logger.info(f"Datos obtenidos de {url}")
                 return data
         except aiohttp.ClientError as e:
             logger.error(f"Error al obtener datos de {url}: {e}")
@@ -36,8 +35,8 @@ class DataFetcher(AbstractDataFetcher):
         async with aiohttp.ClientSession() as session:
             try:
                 data = await self.fetch_data(session, url)
-                logger.info(f"""Datos de ticker obtenidos para {
-                            exchange}_{ticker}_{timeframe} desde {url}""")
+                logger.debug(f"""Datos de ticker obtenidos para {
+                    exchange}_{ticker}_{timeframe} desde {url}""")
                 return [d[:-1] for d in data]
             except Exception as e:
                 logger.error(f"""Error al obtener datos de ticker para {
