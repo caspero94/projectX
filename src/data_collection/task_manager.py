@@ -17,11 +17,6 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
-        self.db_semaphore = Semaphore(8)
-
-    async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
-        async with self.db_semaphore:
-            await self.db_manager.save_to_db(data, ticker, timeframe, exchange)
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
 
@@ -32,8 +27,7 @@ class TaskManager:
                 if int(last_time) < 1720562000000:
 
                     new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
-                    # await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
-                    await self.save_to_db(new_data, ticker, timeframe, exchange)
+                    await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
                     lastdata = datetime.fromtimestamp(int(last_time)/1000)
                     logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                         timeframe} -> {lastdata}""")
