@@ -1,6 +1,7 @@
 import asyncio
 import uvicorn
 import logging
+from logging.handlers import RotatingFileHandler
 from data_collection.task_manager import TaskManager
 import os
 
@@ -11,14 +12,17 @@ os.makedirs(log_dir, exist_ok=True)
 # Configura el archivo de log
 log_file = os.path.join(log_dir, "app.log")
 
-# Configura el logging
+# Configurar el RotatingFileHandler
+rotating_handler = RotatingFileHandler(
+    log_file, maxBytes=5000000, backupCount=5)
+rotating_handler.setLevel(logging.INFO)
+rotating_handler.setFormatter(logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
+
+# Configurar el logging solo con RotatingFileHandler
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
+    handlers=[rotating_handler]
 )
 
 logger = logging.getLogger(__name__)
