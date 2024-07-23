@@ -25,7 +25,7 @@ class TaskManager:
 
                     new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
                     await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
-                    lastdata = datetime.fromtimestamp(last_time/1000)
+                    lastdata = datetime.fromtimestamp(int(last_time)/1000)
                     logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                         timeframe} -> {lastdata}""")
 
