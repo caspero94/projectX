@@ -21,7 +21,7 @@ class TaskManager:
         try:
             while True:
                 last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-                if last_time < 1720562000000:
+                if int(last_time) < 1720562000000:
 
                     new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
                     await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
