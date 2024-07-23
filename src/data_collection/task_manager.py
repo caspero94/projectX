@@ -46,7 +46,7 @@ class TaskManager:
                     for timeframe in settings["timeframes"]:
                         tasks.append(asyncio.create_task(self.collect_data(
                             exchange, ticker, timeframe, limit, api_url)))
-                # await asyncio.sleep(15)
+                await asyncio.sleep(15)
             await asyncio.gather(*tasks)
         except Exception as e:
             logger.error(f"Error en start_data_collection: {e}")
