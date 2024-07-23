@@ -28,7 +28,7 @@ class TaskManager:
                             timeframe} -> {lastdata}""")
                 if last_time > 1720562000000:
                     break
-                await asyncio.sleep(12)
+                await asyncio.sleep(15)
         except Exception as e:
             logger.error(f"""Error en collect_data: {
                          e}, ticker {ticker} - {timeframe}""")
@@ -45,7 +45,7 @@ class TaskManager:
                     for timeframe in settings["timeframes"]:
                         tasks.append(asyncio.create_task(self.collect_data(
                             exchange, ticker, timeframe, limit, api_url)))
-                # await asyncio.sleep(15)
+                await asyncio.sleep(15)
             await asyncio.gather(*tasks)
         except Exception as e:
             logger.error(f"Error en start_data_collection: {e}")
