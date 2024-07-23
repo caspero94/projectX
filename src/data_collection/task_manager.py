@@ -17,7 +17,7 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
-        self.db_semaphore = Semaphore(10)
+        self.db_semaphore = Semaphore(20)
 
     async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
         async with self.db_semaphore:
