@@ -28,7 +28,8 @@ class TaskManager:
                             timeframe} -> {lastdata}""")
                 await asyncio.sleep(20)
         except Exception as e:
-            logger.error(f"Error en collect_data: {e}")
+            logger.error(f"""Error en collect_data: {
+                         e}, ticker {ticker} - {timeframe}""")
             raise
 
     async def start_data_collection(self):
