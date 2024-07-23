@@ -16,12 +16,13 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
-        self.semaphore = asyncio.Semaphore(500)
+        self.semaphore = asyncio.Semaphore(50)
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
-        async with self.semaphore:
-            try:
-                while True:
+
+        try:
+            while True:
+                async with self.semaphore:
                     last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
                     if int(last_time) < 1720562000000:
 
@@ -31,11 +32,11 @@ class TaskManager:
                         logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
                             timeframe} -> {lastdata}""")
 
-                    await asyncio.sleep(80)
-            except Exception as e:
-                logger.error(f"""Error en collect_data: {
-                    e}, ticker {ticker} - {timeframe}""")
-                raise
+                await asyncio.sleep(80)
+        except Exception as e:
+            logger.error(f"""Error en collect_data: {
+                e}, ticker {ticker} - {timeframe}""")
+            raise
 
     async def start_data_collection(self):
         try:
