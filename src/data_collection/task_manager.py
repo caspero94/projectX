@@ -23,6 +23,7 @@ class TaskManager:
         try:
             while True:
                 async with self.semaphore:
+                    logging.ERROR(F"INICIO TAREA {ticker}__{timeframe}")
                     last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
                     if int(last_time) < 1720562000000:
 
