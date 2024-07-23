@@ -16,7 +16,7 @@ class TaskManager:
     def __init__(self):
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
-        self.semaphore = asyncio.Semaphore(100)
+        self.semaphore = asyncio.Semaphore(500)
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
         async with self.semaphore:
