@@ -14,7 +14,7 @@ log_file = os.path.join(log_dir, "app.log")
 
 # Configurar el RotatingFileHandler
 rotating_handler = RotatingFileHandler(
-    log_file, maxBytes=500000000, backupCount=5)
+    log_file, maxBytes=500000000, backupCount=1)
 rotating_handler.setLevel(logging.INFO)
 rotating_handler.setFormatter(logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
