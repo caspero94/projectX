@@ -36,7 +36,7 @@ class DBManager(AbstractDBManager):
             db_url, echo=False)
         self.async_session = sessionmaker(
             bind=self.engine,
-            expire_on_commit=True,
+            expire_on_commit=False,
             class_=AsyncSession)  # type: ignore
         self.metadata = MetaData()
         self.table_definitions = self._define_tables()
@@ -68,9 +68,9 @@ class DBManager(AbstractDBManager):
             async with self.engine.begin() as conn:
                 await conn.run_sync(self.metadata.create_all, checkfirst=True)
                 logger.info("Comprobado que existen las tablas y/o se crearon")
-        except:
+        except Exception as e:
             logger.error(
-                """Error intentado comprobar que existen o se crearon las tablas necesarias""")
+                """Error intentado comprobar que existen o se crearon las tablas necesarias: %s""", e)
 
     async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
         table_name = f"{exchange}_{ticker}_{timeframe}"
