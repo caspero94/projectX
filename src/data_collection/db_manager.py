@@ -10,9 +10,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-Base = declarative_base()
 with open('src/config/config.json') as config_file:
     config = json.load(config_file)
+
+Base = declarative_base()
 
 
 class AbstractDBManager(ABC):
