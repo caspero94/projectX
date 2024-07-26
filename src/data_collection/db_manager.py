@@ -33,11 +33,10 @@ class AbstractDBManager(ABC):
 class DBManager(AbstractDBManager):
     def __init__(self, db_url: str):
         self.engine = create_async_engine(
-            db_url, echo=False, connect_args={"timeout": 120})
-        # , pool_size=50, max_overflow=30
+            db_url, echo=False)
         self.async_session = sessionmaker(
             bind=self.engine,
-            expire_on_commit=False,
+            expire_on_commit=True,
             class_=AsyncSession)  # type: ignore
         self.metadata = MetaData()
         self.table_definitions = self._define_tables()
