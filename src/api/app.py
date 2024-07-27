@@ -3,7 +3,6 @@ import json
 import asyncpg
 import logging
 from data_collection.db_manager import DBManager
-import os
 
 logger = logging.getLogger(__name__)
 

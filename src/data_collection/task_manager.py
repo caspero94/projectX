@@ -4,7 +4,6 @@ import logging
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
 from datetime import datetime
-from asyncio import Semaphore
 
 logger = logging.getLogger(__name__)
 
@@ -13,18 +12,18 @@ with open('src/config/config.json') as config_file:
 
 
 class TaskManager:
-
     def __init__(self):
+        logger.info("RUN - TaskManager - __init__")
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
 
     async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
-
+        logger.info("RUN - TaskManager - collect_data")
         try:
             while True:
 
                 last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-                if int(last_time) < 1720562000000:
+                if int(last_time) < 17205620000000:
 
                     new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
                     await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
@@ -40,6 +39,7 @@ class TaskManager:
 
     async def start_data_collection(self):
         try:
+            logger.info("RUN - TaskManager - start_data_collection")
             await self.db_manager.init_db()
             tasks = []
             for exchange, settings in config["exchanges"].items():

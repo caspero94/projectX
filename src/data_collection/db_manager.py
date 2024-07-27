@@ -16,22 +16,9 @@ with open('src/config/config.json') as config_file:
 Base = declarative_base()
 
 
-class AbstractDBManager(ABC):
-    @abstractmethod
-    async def init_db(self):
-        pass
-
-    @abstractmethod
-    async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
-        pass
-
-    @abstractmethod
-    async def get_last_time_from_db(self, ticker: str, timeframe: str, exchange: str):
-        pass
-
-
-class DBManager(AbstractDBManager):
+class DBManager():
     def __init__(self, db_url: str):
+        logger.info("RUN - DBManager - __init__")
         self.engine = create_async_engine(
             db_url, echo=False)
         self.async_session = sessionmaker(
@@ -42,6 +29,7 @@ class DBManager(AbstractDBManager):
         self.table_definitions = self._define_tables()
 
     def _define_tables(self):
+        logger.info("RUN - DBManager - _define_tables")
         return {
             f"{exchange}_{ticker}_{timeframe}": Table(
                 f"{exchange}_{ticker}_{timeframe}", self.metadata,
@@ -64,6 +52,7 @@ class DBManager(AbstractDBManager):
         }
 
     async def init_db(self):
+        logger.info("RUN - DBManager - init_db")
         try:
             async with self.engine.begin() as conn:
                 await conn.run_sync(self.metadata.create_all, checkfirst=True)
@@ -73,6 +62,7 @@ class DBManager(AbstractDBManager):
                 """Error intentado comprobar que existen o se crearon las tablas necesarias: %s""", e)
 
     async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
+        logger.info("RUN - DBManager - save_to_db")
         table_name = f"{exchange}_{ticker}_{timeframe}"
         table = self.metadata.tables.get(table_name)
 
@@ -99,6 +89,7 @@ class DBManager(AbstractDBManager):
                 raise
 
     async def get_last_time_from_db(self, ticker: str, timeframe: str, exchange: str):
+        logger.info("RUN - DBManager - get_last_time_from_db")
         table_name = f"{exchange}_{ticker}_{timeframe}"
         table = self.metadata.tables.get(table_name)
 
