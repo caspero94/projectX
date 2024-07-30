@@ -3,8 +3,8 @@
         "binance": {
             "db_path": "postgresql+asyncpg://pedro:dolar816.@server-data.postgres.database.azure.com:5432/postgres",
             "data_limit": 1000,
-            "tickers": ["BTCUSDT","ETHUSDT"],
-            "timeframes": ["1m", "3m"], 
+            "tickers": ["BTCUSDT", "BNBUSDT", "ETHUSDT", "SOLUSDT", "PEPEUSDT", "XRPUSDT", "WIFUSDT", "DOGEUSDT", "BNBUSDT", "ARBUSDT", "ETHFIUSDT", "ENSUSDT", "AVAXUSDT", "NOTUSDT", "BONKUSDT", "FLOKIUSDT", "ZROUSDT", "WLDUSDT", "SHIBUSDT", "RUNEUSDT", "BOMEUSDT", "XLMUSDT", "PEOPLEUSDT", "ORDIUSDT", "FETUSDT", "STRKUSDT", "ZKUSDT", "MATICUSDT", "NEARUSDT", "OPUSDT", "ADAUSDT", "ENAUSDT", "TIAUSDT", "ETCUSDT", "INJUSDT", "BANANAUSDT", "MKRUSDT", "LDOUSDT", "IOUSDT", "STMXUSDT", "BCHUSDT", "AEVOUSDT", "TRXUSDT", "CTKUSDT", "PENDLEUSDT", "LTCUSDT", "SEIUSDT", "ALTUSDT", "RNDRUSDT", "BNXUSDT", "LINKUSDT", "JUPUSDT", "REZUSDT", "BBUSDT", "ICPUSDT", "FTMUSDT", "FILUSDT", "DYDXUSDT", "DOTUSDT", "SUIUSDT", "MEMEUSDT", "JASMYUSDT", "CRVUSDT", "UNIUSDT", "CVXUSDT", "RAYUSDT", "APTUSDT", "STXUSDT", "RDNTUSDT", "JTOUSDT", "ARUSDT", "SSVUSDT", "TAOUSDT", "SAGAUSDT", "GALAUSDT", "MANTAUSDT", "LISTAUSDT", "PIXELUSDT", "CFXUSDT", "ARKMUSDT", "COTIUSDT", "HIGHUSDT", "TRBUSDT", "PYTHUSDT", "LUNCUSDT", "AAVEUSDT", "HBARUSDT", "TRUUSDT", "CAKEUSDT", "TNSRUSDT", "DYMUSDT", "ATOMUSDT", "CKBUSDT", "EOSUSDT", "METISUSDT", "OMNIUSDT", "WUSDT", "OMUSDT", "GUSDT", "YGGUSDT", "AXLUSDT"],
+            "timeframes": ["1m","3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w"], 
             "api_url": "https://api.binance.com/api/v3/klines?symbol={ticker}&interval={timeframe}&startTime={start_time}&limit={limit}"
         }
     }

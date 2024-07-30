@@ -3,6 +3,7 @@
 database/
 # Otros
 .otros
+logs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,9 +1,9 @@
 import asyncio
 import json
 import logging
+import queue
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -12,45 +12,52 @@ with open('src/config/config.json') as config_file:
 
 
 class TaskManager:
+
     def __init__(self):
-        logger.info("RUN - TaskManager - __init__")
+
+        logger.info("RECOLECTOR GENERAL - PREPARADO")
         self.data_fetcher = DataFetcher()
         self.db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
 
-    async def collect_data(self, exchange, ticker, timeframe, limit, api_url):
-        logger.info("RUN - TaskManager - collect_data")
-        try:
-            while True:
-
-                last_time = await self.db_manager.get_last_time_from_db(ticker, timeframe, exchange)
-                if int(last_time) < 17205620000000:
-
-                    new_data = await self.data_fetcher.fetch_ticker_data(exchange, ticker, timeframe, last_time, limit, api_url)
-                    await self.db_manager.save_to_db(new_data, ticker, timeframe, exchange)
-                    lastdata = datetime.fromtimestamp(int(last_time)/1000)
-                    logger.info(f"""Collect_data --> {exchange} --> {ticker} --> {
-                        timeframe} -> {lastdata}""")
-
-                await asyncio.sleep(30)
-        except Exception as e:
-            logger.error(f"""Error en collect_data: {
-                e}, ticker {ticker} - {timeframe}""")
-            raise
-
     async def start_data_collection(self):
+
         try:
-            logger.info("RUN - TaskManager - start_data_collection")
-            await self.db_manager.init_db()
-            tasks = []
+            logger.info("RECOLECTOR GENERAL - INICIADO")
+            tickers_master = []
+
             for exchange, settings in config["exchanges"].items():
                 limit = settings["data_limit"]
                 api_url = settings["api_url"]
+
                 for ticker in settings["tickers"]:
+
                     for timeframe in settings["timeframes"]:
-                        tasks.append(asyncio.create_task(self.collect_data(
-                            exchange, ticker, timeframe, limit, api_url)))
-                # await asyncio.sleep(15)
-            await asyncio.gather(*tasks)
+                        tickers_master.append(
+                            [f"{exchange}_{ticker}_{timeframe}", exchange, ticker, timeframe, limit, api_url, 0])
+
+            await self.db_manager.init_db()
+            q_data = asyncio.Queue(maxsize=30)
+            q_lastime = asyncio.Queue(maxsize=30)
+            while True:
+                tasks = []
+                task0 = asyncio.create_task(
+                    self.db_manager.get_last_time_from_db(tickers_master, q_lastime))
+                task1 = asyncio.create_task(
+                    self.data_fetcher.fetch_ticker_data(q_lastime, q_data))
+                task2 = asyncio.create_task(
+                    self.data_fetcher.fetch_ticker_data(q_lastime, q_data))
+                task3 = asyncio.create_task(self.db_manager.save_to_db(q_data))
+                task4 = asyncio.create_task(self.db_manager.save_to_db(q_data))
+                task5 = asyncio.create_task(self.db_manager.save_to_db(q_data))
+                tasks.append(task0)
+                tasks.append(task1)
+                tasks.append(task2)
+                tasks.append(task3)
+                tasks.append(task4)
+                tasks.append(task5)
+                await asyncio.gather(*tasks, return_exceptions=True)
+
         except Exception as e:
-            logger.error(f"Error en start_data_collection: {e}")
+
+            logger.error(f"RECOLECTOR GENERAL - INICIADO: {e}")
             raise

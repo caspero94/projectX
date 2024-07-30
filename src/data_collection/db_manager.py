@@ -1,12 +1,13 @@
-from abc import ABC, abstractmethod
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, MetaData, Table, BigInteger, select
+from sqlalchemy import Column, Integer, String, MetaData, Table, BigInteger, select, union_all, literal
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 import json
 import logging
+import asyncio
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +18,22 @@ Base = declarative_base()
 
 
 class DBManager():
+
     def __init__(self, db_url: str):
-        logger.info("RUN - DBManager - __init__")
-        self.engine = create_async_engine(
-            db_url, echo=False)
+
+        self.engine = create_async_engine(db_url, echo=False)
         self.async_session = sessionmaker(
             bind=self.engine,
             expire_on_commit=False,
             class_=AsyncSession)  # type: ignore
         self.metadata = MetaData()
         self.table_definitions = self._define_tables()
+        logger.info("GESTOR DB - PREPARADO")
 
     def _define_tables(self):
-        logger.info("RUN - DBManager - _define_tables")
+
+        logger.info("GESTOR DB - TABLAS DEFINIDAS")
+
         return {
             f"{exchange}_{ticker}_{timeframe}": Table(
                 f"{exchange}_{ticker}_{timeframe}", self.metadata,
@@ -52,60 +56,96 @@ class DBManager():
         }
 
     async def init_db(self):
-        logger.info("RUN - DBManager - init_db")
+
+        logger.info("GESTOR DB - INICIADO")
+
         try:
             async with self.engine.begin() as conn:
-                await conn.run_sync(self.metadata.create_all, checkfirst=True)
-                logger.info("Comprobado que existen las tablas y/o se crearon")
+                # await conn.run_sync(self.metadata.create_all, checkfirst=True)
+                logger.info("GESTOR DB - TABLAS COMPROBADAS")
+
         except Exception as e:
             logger.error(
-                """Error intentado comprobar que existen o se crearon las tablas necesarias: %s""", e)
+                "GESTOR DB - TABLAS COMPROBADAS: %s", e)
 
-    async def save_to_db(self, data, ticker: str, timeframe: str, exchange: str):
-        logger.info("RUN - DBManager - save_to_db")
-        table_name = f"{exchange}_{ticker}_{timeframe}"
-        table = self.metadata.tables.get(table_name)
+    async def save_to_db(self, q_data):
+        while True:
 
-        if table is None:
-            raise ValueError(f"Table {table_name} is not defined")
+            async with self.async_session() as session:
 
-        columns = table.columns.keys()
-        data_dict = [dict(zip(columns, record)) for record in data]
-        async with self.async_session() as session:
-            try:
                 async with session.begin():
-                    insert_stmt = insert(table).values(data_dict)
-                    update_stmt = insert_stmt.on_conflict_do_update(
-                        index_elements=['open_time'],
-                        set_={col: insert_stmt.excluded[col]
-                              for col in columns if col != 'open_time'}
-                    )
-                    await session.execute(update_stmt)
-                    logger.debug(f"Datos guardados en {table_name}")
-            except SQLAlchemyError as e:
-                await session.rollback()
-                logger.error(
-                    f"Error al insertar/actualizar datos en {table_name}: {e}")
-                raise
+                    try:
+                        while True:
+                            data_to_procces = await q_data.get()
+                            table = self.metadata.tables.get(
+                                data_to_procces[0])
+                            columns = table.columns.keys()
+                            data_dict = [dict(zip(columns, record))
+                                         for record in data_to_procces[1]]
 
-    async def get_last_time_from_db(self, ticker: str, timeframe: str, exchange: str):
-        logger.info("RUN - DBManager - get_last_time_from_db")
-        table_name = f"{exchange}_{ticker}_{timeframe}"
-        table = self.metadata.tables.get(table_name)
+                            insert_stmt = insert(table).values(data_dict)
+                            update_stmt = insert_stmt.on_conflict_do_update(
+                                index_elements=['open_time'],
+                                set_={col: insert_stmt.excluded[col] for col in table.columns.keys(
+                                ) if col != 'open_time'}
+                            )
 
-        if table is None:
-            raise ValueError(f"Table {table_name} is not defined")
+                            await session.execute(update_stmt)
+                            q_data.task_done()
+                            logger.debug(
+                                f"GESTOR DB - DATOS GUARDADOS - {data_to_procces[0]}")
 
-        async with self.async_session() as session:
+                    except SQLAlchemyError as e:
+                        await session.rollback()
+                        logger.error(f"GESTOR DB - DATOS GUARDADOS: {e}")
+                        continue
+
+                    finally:
+                        await session.close()
+                        continue
+
+    async def get_last_time_from_db(self, tickers_master, q_lastime):
+        while True:
+            x = 0
             try:
-                stmt = select(table.c.open_time).order_by(
-                    table.c.open_time.desc()).limit(1)
-                result = await session.execute(stmt)
-                row = result.scalar()
-                logger.debug(f"""Último tiempo obtenido para {
-                             table_name}: {row}""")
-                return row if row else "0000000000000"
+                queries = []
+
+                for table_name, exchange, ticker, timeframe, limit, api_url, last_time in tickers_master:
+                    table = self.metadata.tables.get(table_name)
+                    stmt = select(table.c.open_time, literal(table_name).label(
+                        'table_name')).order_by(table.c.open_time.desc()).limit(1)
+                    queries.append(stmt)
+
+                if not queries:
+                    return []
+
+                final_query = select(
+                    union_all(*queries).alias("combined_query"))
+
+                async with self.async_session() as session:
+
+                    result = await session.execute(final_query)
+                    rows = result.fetchall()
+                    last_times = {item[1]: item[0] for item in rows}
+
+                    for item in tickers_master:
+                        ticker = item[0]
+
+                        if ticker in last_times:
+                            item[-1] = last_times[ticker]
+
+                    for item in tickers_master:
+                        await q_lastime.put(item)
+                        x += 1
+                        logger.debug(
+                            f"GESTOR DB - ULTIMAS FECHAS OBTENIDAS {item[0]}")
+                        print(f"""Agregado a ultiams fechas: {
+                            x} , pool size: {q_lastime.qsize()}""")
+
+                    # return tickers_master
+
             except SQLAlchemyError as e:
-                logger.error(f"""Error al obtener el último tiempo de {
-                             table_name}: {e}""")
-                return "0000000000000"
+
+                logger.error(
+                    f"GESTOR DB - ERROR OBTENIENDO ULTIMAS FECHAS: {e}")
+                return []

@@ -1,44 +1,42 @@
 import aiohttp
 import logging
-import os
-from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
 
 
-class AbstractDataFetcher(ABC):
-
-    @abstractmethod
-    async def fetch_data(self, session, url: str):
-        pass
-
-    @abstractmethod
-    async def fetch_ticker_data(self, exchange: str, ticker: str, timeframe: str, start_time: int, limit: int, api_url: str):
-        pass
-
-
-class DataFetcher(AbstractDataFetcher):
+class DataFetcher():
 
     async def fetch_data(self, session, url: str):
+
         try:
             async with session.get(url) as response:
-                response.raise_for_status()  # Asegura que la respuesta sea exitosa
+                response.raise_for_status()
                 data = await response.json()
                 return data
+
         except aiohttp.ClientError as e:
-            logger.error(f"Error al obtener datos de {url}: {e}")
+            logger.error(f"API DATOS EXCHANGE - {url}: {e}")
             raise
 
-    async def fetch_ticker_data(self, exchange: str, ticker: str, timeframe: str, start_time: int, limit: int, api_url: str):
-        url = api_url.format(ticker=ticker, timeframe=timeframe,
-                             start_time=start_time, limit=limit)
-        async with aiohttp.ClientSession() as session:
-            try:
-                data = await self.fetch_data(session, url)
-                logger.debug(f"""Datos de ticker obtenidos para {
-                    exchange}_{ticker}_{timeframe} desde {url}""")
-                return [d[:-1] for d in data]
-            except Exception as e:
-                logger.error(f"""Error al obtener datos de ticker para {
-                             exchange}_{ticker}_{timeframe}: {e}""")
-                raise
+    async def fetch_ticker_data(self, q_lastime, q_data):
+        x = 0
+        while True:
+
+            tickers_master = await q_lastime.get()
+            url = tickers_master[5].format(ticker=tickers_master[2], timeframe=tickers_master[3],
+                                           start_time=tickers_master[6], limit=tickers_master[4])
+            async with aiohttp.ClientSession() as session:
+                try:
+                    data = await self.fetch_data(session, url)
+                    data_format = [tickers_master[0], [d[:-1] for d in data]]
+                    await q_data.put(data_format)
+                    x += 1
+                    print(f"""Ticker {x} agregado a cola.Pool size {
+                          q_data.qsize()}""")
+                    logger.debug(
+                        f"API DATOS EXCHANGE - OBTENIDOS {tickers_master[0]}")
+                    q_lastime.task_done()
+                except Exception as e:
+                    logger.error(
+                        f"""API DATOS EXCHANGE - OBTENIDOS {tickers_master[0]}: {e}""")
+                    continue
