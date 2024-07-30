@@ -40,7 +40,7 @@ class TaskManager:
             while True:
                 tasks = []
                 task0 = asyncio.create_task(
-                    self.db_manager.get_last_time_from_db(tickers_master, q_lastime, "Get date 1"))
+                    self.db_manager.get_last_time_from_db(tickers_master, q_lastime, "Update date 1"))
                 task1 = asyncio.create_task(
                     self.data_fetcher.fetch_ticker_data(q_lastime, q_data, "Get data 1"))
                 task2 = asyncio.create_task(
@@ -57,7 +57,7 @@ class TaskManager:
                 tasks.append(task3)
                 tasks.append(task4)
                 tasks.append(task5)
-                await asyncio.gather(*tasks, return_exceptions=True)
+                await asyncio.gather(*tasks)  # , return_exceptions=True
 
         except Exception as e:
 

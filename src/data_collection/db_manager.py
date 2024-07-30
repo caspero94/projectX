@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, MetaData, Table, BigInteger, select, union_all, literal
 from sqlalchemy.dialects.postgresql import insert
@@ -21,7 +21,7 @@ class DBManager():
 
     def __init__(self, db_url: str):
 
-        self.engine = create_async_engine(db_url, echo=True)
+        self.engine = create_async_engine(db_url, echo=False)
         self.async_session = sessionmaker(
             bind=self.engine,
             expire_on_commit=False,
@@ -69,13 +69,14 @@ class DBManager():
                 "GESTOR DB - TABLAS COMPROBADAS: %s", e)
 
     async def save_to_db(self, q_data, service_name):
+        x = 0
         while True:
 
             async with self.async_session() as session:
-
-                async with session.begin():
+                while True:
                     try:
-                        while True:
+                        async with session.begin():
+
                             data_to_procces = await q_data.get()
                             table = self.metadata.tables.get(
                                 data_to_procces[0])
@@ -86,12 +87,12 @@ class DBManager():
                             insert_stmt = insert(table).values(data_dict)
                             update_stmt = insert_stmt.on_conflict_do_update(
                                 index_elements=['open_time'],
-                                set_={col: insert_stmt.excluded[col] for col in table.columns.keys(
-                                ) if col != 'open_time'}
+                                set_={
+                                    col: insert_stmt.excluded[col] for col in columns if col != 'open_time'}
                             )
-
                             await session.execute(update_stmt)
                             q_data.task_done()
+                            x += 1
                             logger.debug(
                                 f"""{service_name} -> Nº{x} - Datos almacenados - {
                                     data_to_procces[0]} - pool size {q_data.qsize()}""")
@@ -99,7 +100,7 @@ class DBManager():
                     except SQLAlchemyError as e:
                         await session.rollback()
                         logger.error(f"GESTOR DB - DATOS GUARDADOS: {e}")
-                        continue
+                        raise
 
                     finally:
                         await session.close()
