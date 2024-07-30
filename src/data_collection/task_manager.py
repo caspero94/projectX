@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import queue
 from .data_fetcher import DataFetcher
 from .db_manager import DBManager
 
