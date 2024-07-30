@@ -18,7 +18,7 @@ class DataFetcher():
             logger.error(f"API DATOS EXCHANGE - {url}: {e}")
             raise
 
-    async def fetch_ticker_data(self, q_lastime, q_data):
+    async def fetch_ticker_data(self, q_lastime, q_data, service_name):
         x = 0
         while True:
 
@@ -31,10 +31,8 @@ class DataFetcher():
                     data_format = [tickers_master[0], [d[:-1] for d in data]]
                     await q_data.put(data_format)
                     x += 1
-                    print(f"""Ticker {x} agregado a cola.Pool size {
-                          q_data.qsize()}""")
-                    logger.debug(
-                        f"API DATOS EXCHANGE - OBTENIDOS {tickers_master[0]}")
+                    logger.debug(f"""{service_name} -> Nº{x} - Datos descargados - {tickers_master[0]} - Pool size {
+                        q_data.qsize()}""")
                     q_lastime.task_done()
                 except Exception as e:
                     logger.error(

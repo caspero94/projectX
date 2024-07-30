@@ -68,7 +68,7 @@ class DBManager():
             logger.error(
                 "GESTOR DB - TABLAS COMPROBADAS: %s", e)
 
-    async def save_to_db(self, q_data):
+    async def save_to_db(self, q_data, service_name):
         while True:
 
             async with self.async_session() as session:
@@ -93,7 +93,8 @@ class DBManager():
                             await session.execute(update_stmt)
                             q_data.task_done()
                             logger.debug(
-                                f"GESTOR DB - DATOS GUARDADOS - {data_to_procces[0]}")
+                                f"""{service_name} -> Nº{x} - Datos almacenados - {
+                                    data_to_procces[0]} - pool size {q_data.qsize()}""")
 
                     except SQLAlchemyError as e:
                         await session.rollback()
@@ -104,7 +105,7 @@ class DBManager():
                         await session.close()
                         continue
 
-    async def get_last_time_from_db(self, tickers_master, q_lastime):
+    async def get_last_time_from_db(self, tickers_master, q_lastime, service_name):
         while True:
             x = 0
             try:
@@ -137,10 +138,8 @@ class DBManager():
                     for item in tickers_master:
                         await q_lastime.put(item)
                         x += 1
-                        logger.debug(
-                            f"GESTOR DB - ULTIMAS FECHAS OBTENIDAS {item[0]}")
-                        print(f"""Agregado a ultiams fechas: {
-                            x} , pool size: {q_lastime.qsize()}""")
+                        logger.debug(f"""{service_name} -> Nº{x} - Fecha
+                                     actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
 
                     # return tickers_master
 

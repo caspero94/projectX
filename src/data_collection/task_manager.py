@@ -40,14 +40,17 @@ class TaskManager:
             while True:
                 tasks = []
                 task0 = asyncio.create_task(
-                    self.db_manager.get_last_time_from_db(tickers_master, q_lastime))
+                    self.db_manager.get_last_time_from_db(tickers_master, q_lastime, "Get date 1"))
                 task1 = asyncio.create_task(
-                    self.data_fetcher.fetch_ticker_data(q_lastime, q_data))
+                    self.data_fetcher.fetch_ticker_data(q_lastime, q_data, "Get data 1"))
                 task2 = asyncio.create_task(
-                    self.data_fetcher.fetch_ticker_data(q_lastime, q_data))
-                task3 = asyncio.create_task(self.db_manager.save_to_db(q_data))
-                task4 = asyncio.create_task(self.db_manager.save_to_db(q_data))
-                task5 = asyncio.create_task(self.db_manager.save_to_db(q_data))
+                    self.data_fetcher.fetch_ticker_data(q_lastime, q_data, "Get data 2"))
+                task3 = asyncio.create_task(
+                    self.db_manager.save_to_db(q_data, "Save data 1"))
+                task4 = asyncio.create_task(
+                    self.db_manager.save_to_db(q_data, "Save data 2"))
+                task5 = asyncio.create_task(
+                    self.db_manager.save_to_db(q_data, "Save data 3"))
                 tasks.append(task0)
                 tasks.append(task1)
                 tasks.append(task2)
