@@ -70,8 +70,8 @@ class DBManager():
 
     async def get_last_time_from_db(self, tickers_master, q_lastime, service_name):
         while True:
-            x = 0
             try:
+                time_start = time.time()
                 queries = []
 
                 for table_name, exchange, ticker, timeframe, limit, api_url, last_time in tickers_master:
@@ -97,13 +97,16 @@ class DBManager():
 
                         if ticker in last_times:
                             item[-1] = last_times[ticker]
-
+                    x = 0
                     for item in tickers_master:
                         if int(item[-1]) < 1721599199000:
                             await q_lastime.put(item)
-                            x += 1
                             logger.debug(f"""{service_name} -> Nº{x} - Fecha
                                         actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
+                    time_end = time.time()
+                    time_elapsed = time_end - time_start
+                    logger.info(
+                        f"""{service_name} - BUCLE COMPLETADO - TICKER: {x} - TIEMPO: {time_elapsed}""")
 
             except SQLAlchemyError as e:
 

@@ -8,10 +8,10 @@ os.makedirs("logs", exist_ok=True)
 log_file = os.path.join("logs", "app.log")
 r_handler = RotatingFileHandler(
     log_file, maxBytes=5000000, backupCount=1)
-r_handler.setLevel(logging.DEBUG)
+r_handler.setLevel(logging.INFO)
 r_handler.setFormatter(logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
-logging.basicConfig(level=logging.DEBUG, handlers=[r_handler])
+logging.basicConfig(level=logging.INFO, handlers=[r_handler])
 logger = logging.getLogger(__name__)
 
 
