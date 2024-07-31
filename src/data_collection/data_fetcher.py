@@ -1,6 +1,5 @@
 import aiohttp
 import logging
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,6 @@ class DataFetcher():
     async def fetch_ticker_data(self, q_lastime, q_data, service_name):
         x = 0
         while True:
-            await time.sleep(5)
             tickers_master = await q_lastime.get()
             url = tickers_master[5].format(ticker=tickers_master[2], timeframe=tickers_master[3],
                                            start_time=tickers_master[6], limit=tickers_master[4])
