@@ -102,7 +102,7 @@ class DBManager():
                     for item in tickers_master:
                         # if int(item[-1]) < 1721599199000:
                         await q_lastime.put(item)
-                        await asyncio.sleep(0.2)
+                        await asyncio.sleep(0.1)
                         n_ticker += 1
                         logger.debug(f"""{service_name} -> Nº{n_ticker} - Fecha
                                     actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
