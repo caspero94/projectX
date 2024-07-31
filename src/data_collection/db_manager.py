@@ -69,6 +69,7 @@ class DBManager():
                 "GESTOR DB - TABLAS COMPROBADAS: %s", e)
 
     async def get_last_time_from_db(self, tickers_master, q_lastime, service_name):
+        n_bucle = 0
         while True:
             try:
                 time_start = time.time()
@@ -97,16 +98,18 @@ class DBManager():
 
                         if ticker in last_times:
                             item[-1] = last_times[ticker]
-                    x = 0
+                    n_ticker = 0
                     for item in tickers_master:
                         if int(item[-1]) < 1721599199000:
                             await q_lastime.put(item)
+                            x += 1
                             logger.debug(f"""{service_name} -> Nº{x} - Fecha
                                         actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
                     time_end = time.time()
                     time_elapsed = time_end - time_start
+                    n_bucle += 1
                     logger.info(
-                        f"""{service_name} - BUCLE COMPLETADO - TICKER: {x} - TIEMPO: {time_elapsed}""")
+                        f"""{service_name} - BUCLE {n_bucle} - TICKER: {n_ticker} - TIEMPO: {time_elapsed}""")
 
             except SQLAlchemyError as e:
 
