@@ -72,7 +72,7 @@ class DBManager():
         n_bucle = 0
         while True:
             try:
-                await async.sleep(30)
+                await asyncio.sleep(40)
                 time_start = time.time()
                 queries = []
 
