@@ -68,6 +68,49 @@ class DBManager():
             logger.error(
                 "GESTOR DB - TABLAS COMPROBADAS: %s", e)
 
+    async def get_last_time_from_db(self, tickers_master, q_lastime, service_name):
+        while True:
+            x = 0
+            try:
+                queries = []
+
+                for table_name, exchange, ticker, timeframe, limit, api_url, last_time in tickers_master:
+                    table = self.metadata.tables.get(table_name)
+                    stmt = select(table.c.open_time, literal(table_name).label(
+                        'table_name')).order_by(table.c.open_time.desc()).limit(1)
+                    queries.append(stmt)
+
+                if not queries:
+                    return []
+
+                final_query = select(
+                    union_all(*queries).alias("combined_query"))
+
+                async with self.async_session() as session:
+
+                    result = await session.execute(final_query)
+                    rows = result.fetchall()
+                    last_times = {item[1]: item[0] for item in rows}
+
+                    for item in tickers_master:
+                        ticker = item[0]
+
+                        if ticker in last_times:
+                            item[-1] = last_times[ticker]
+
+                    for item in tickers_master:
+                        if int(item[-1]) < 1721599199000:
+                            await q_lastime.put(item)
+                            x += 1
+                            logger.debug(f"""{service_name} -> Nº{x} - Fecha
+                                        actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
+
+            except SQLAlchemyError as e:
+
+                logger.error(
+                    f"GESTOR DB - ERROR OBTENIENDO ULTIMAS FECHAS: {e}")
+                return []
+
     async def save_to_db(self, q_data, service_name):
         x = 0
         while True:
@@ -105,47 +148,3 @@ class DBManager():
                     finally:
                         await session.close()
                         continue
-
-    async def get_last_time_from_db(self, tickers_master, q_lastime, service_name):
-        while True:
-            x = 0
-            try:
-                queries = []
-
-                for table_name, exchange, ticker, timeframe, limit, api_url, last_time in tickers_master:
-                    table = self.metadata.tables.get(table_name)
-                    stmt = select(table.c.open_time, literal(table_name).label(
-                        'table_name')).order_by(table.c.open_time.desc()).limit(1)
-                    queries.append(stmt)
-
-                if not queries:
-                    return []
-
-                final_query = select(
-                    union_all(*queries).alias("combined_query"))
-
-                async with self.async_session() as session:
-
-                    result = await session.execute(final_query)
-                    rows = result.fetchall()
-                    last_times = {item[1]: item[0] for item in rows}
-
-                    for item in tickers_master:
-                        ticker = item[0]
-
-                        if ticker in last_times:
-                            item[-1] = last_times[ticker]
-
-                    for item in tickers_master:
-                        await q_lastime.put(item)
-                        x += 1
-                        logger.debug(f"""{service_name} -> Nº{x} - Fecha
-                                     actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
-
-                    # return tickers_master
-
-            except SQLAlchemyError as e:
-
-                logger.error(
-                    f"GESTOR DB - ERROR OBTENIENDO ULTIMAS FECHAS: {e}")
-                return []
