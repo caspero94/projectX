@@ -100,11 +100,11 @@ class DBManager():
                             item[-1] = last_times[ticker]
                     n_ticker = 0
                     for item in tickers_master:
-                        if int(item[-1]) < 1721599199000:
-                            await q_lastime.put(item)
-                            n_ticker += 1
-                            logger.debug(f"""{service_name} -> Nº{n_ticker} - Fecha
-                                        actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
+                        # if int(item[-1]) < 1721599199000:
+                        await q_lastime.put(item)
+                        n_ticker += 1
+                        logger.debug(f"""{service_name} -> Nº{n_ticker} - Fecha
+                                    actualizada - {item[0]} - pool size {q_lastime.qsize()}""")
                     time_end = time.time()
                     time_elapsed = time_end - time_start
                     n_bucle += 1
