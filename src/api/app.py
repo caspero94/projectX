@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 import json
 import asyncpg
 import logging
@@ -11,6 +12,15 @@ with open('src/config/config.json') as config_file:
     config = json.load(config_file)
 
 app = FastAPI()
+# Configurar CORS
+app.add_middleware(
+    CORSMiddleware,
+    # Permitir solicitudes desde cualquier origen; para producción, especifica los orígenes permitidos
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos los métodos HTTP
+    allow_headers=["*"],  # Permitir todos los encabezados
+)
 db_manager = DBManager(config["exchanges"]["binance"]["db_path"])
 
 
